@@ -16,8 +16,10 @@ class HdfsDataLatencyCheckerSpec extends Specification with BeforeAll {
   def is =
     s2"""
         An HdfsDataLatencyChecker
-          should throw an error if no arguments are supplied $testLatencyCheckMissingArguments()
-          should throw an error if the number of arguments supplied are more than expected $testLatencyCheckArgumentsMoreThanExpectedNumberOfArguments()
+          should throw an error if no arguments are supplied $testMissingArguments()
+          should throw an error if the number of arguments supplied are more than expected $testArgumentsMoreThanExpectedNumberOfArguments()
+          should throw an error if the specified last N value is invalid $testInvalidLastNArgument()
+          should throw an error if the specified partition format value is invalid $testInvalidPartitionFormatArgument()
       """
 
   private var _fs: DistributedFileSystem = _
@@ -26,22 +28,26 @@ class HdfsDataLatencyCheckerSpec extends Specification with BeforeAll {
   lazy val fs: DistributedFileSystem = _fs
   var hdfsURI: String = "hdfs://localhost:8020"
 
-  def testLatencyCheckMissingArguments() = {
+  def testMissingArguments() = {
     HdfsDataLatencyChecker.main(Array[String]()) must throwA[Exception]
   }
 
-  def testLatencyCheckArgumentsMoreThanExpectedNumberOfArguments() = {
+  def testArgumentsMoreThanExpectedNumberOfArguments() = {
     HdfsDataLatencyChecker.main(Array[String]("1", "2", "3", "4")) must throwA[Exception]
   }
 
-  // TODO: add test for invalid arguments
-  def testLatencyCheckInvalidArguments() = {
+  def testInvalidLastNArgument() = {
+    HdfsDataLatencyChecker.main(Array[String]("A", "/path/to/dir", "year=yyyy/month=MM/day=dd")) must throwA(
+      new Exception("Invalid Last N months argument. Possible values are 1-12"))
+  }
 
+  def testInvalidPartitionFormatArgument() = {
+    HdfsDataLatencyChecker.main(Array[String]("6", "/path/to/dir", "invalid_format")) must throwA(
+      new Exception("Invalid partition format. Possible values are [partition_year]=yyyy/[partition_month]=MM/[partition_day]=dd or [partition_dir_name]=yyyy-MM-dd"))
   }
 
   // partition: year=yyyy/month=MM/day=dd
   def testLatencyCheckForLast6MonthsWithYearMonthDayPartition() = {
-
   }
 
   def testLatencyCheckForLast12MonthsWithYearMonthDayPartition() = {
@@ -56,7 +62,6 @@ class HdfsDataLatencyCheckerSpec extends Specification with BeforeAll {
   def testLatencyCheckForLast12MonthsWithDatePartition() = {
 
   }
-
 
   override def beforeAll() = {
     // setup a miniDFS cluster

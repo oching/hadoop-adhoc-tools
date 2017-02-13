@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory
   */
 object HdfsDataLatencyChecker {
 
+  // TODO: make this configurable
   val HADOOP_CONF_DIR = "/etc/hadoop/conf"
 
   val requiredJobArguments =
@@ -40,7 +41,7 @@ object HdfsDataLatencyChecker {
       throw new Exception(s"Passed parameters does not match expected arguments. Please provide the following arguments: $requiredJobArguments")
 
     val Array(lastNMonths, directoryPath, partitionFormat) = args
-//    validate(lastNMonths, partitionFormat)
+    validate(lastNMonths, partitionFormat)
 
     _LOG.info(s"Starting check of data latency: $lastNMonths $directoryPath $partitionFormat")
 
@@ -100,8 +101,8 @@ object HdfsDataLatencyChecker {
 
   @throws(classOf[Exception])
   private def validate(lastNMonths: String, partitionFormat: String) = {
-    if (!"[1-12]".r.findFirstIn(lastNMonths).isDefined)
-      throw new Exception("Invalid Last N months argument. Possible values are 0-12")
+    if (!"([1-9]|1(1|2))".r.findFirstIn(lastNMonths).isDefined)
+      throw new Exception("Invalid Last N months argument. Possible values are 1-12")
 
     if (!"([a-zA-Z_]=yyyy/[a-zA-Z_]=MM/[a-zA-Z_]=dd|[a-zA-Z_]=yyyy-MM-dd)".r.findFirstIn(partitionFormat).isDefined)
       throw new Exception("Invalid partition format. Possible values are [partition_year]=yyyy/[partition_month]=MM/[partition_day]=dd or [partition_dir_name]=yyyy-MM-dd")
