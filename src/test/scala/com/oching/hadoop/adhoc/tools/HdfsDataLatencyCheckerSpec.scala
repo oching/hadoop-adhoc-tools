@@ -5,6 +5,8 @@ import java.io.File
 import org.apache.hadoop.fs.{FileUtil, Path}
 import org.apache.hadoop.hdfs.{DistributedFileSystem, HdfsConfiguration, MiniDFSCluster}
 
+import org.joda.time.DateTime
+
 import org.junit.runner.RunWith
 
 import org.specs2.Specification
@@ -48,6 +50,7 @@ class HdfsDataLatencyCheckerSpec extends Specification with BeforeAll {
 
   // partition: year=yyyy/month=MM/day=dd
   def testLatencyCheckForLast6MonthsWithYearMonthDayPartition() = {
+
   }
 
   def testLatencyCheckForLast12MonthsWithYearMonthDayPartition() = {
@@ -63,9 +66,14 @@ class HdfsDataLatencyCheckerSpec extends Specification with BeforeAll {
 
   }
 
+  def testNoPartitions() = {
+
+  }
+
   override def beforeAll() = {
     // setup a miniDFS cluster
     val hdfsRootDir = new File(baseDir, s"/target/hdfs/data-latency-check").getAbsoluteFile()
+    val now = DateTime.now
 
     FileUtil.fullyDelete(hdfsRootDir)
 
@@ -79,7 +87,20 @@ class HdfsDataLatencyCheckerSpec extends Specification with BeforeAll {
     // create HDFS paths
     _fs = hdfsCluster.getFileSystem
     val sourcesPath = new Path(hdfsSourcesDir)
+    val movies = new Path(sourcesPath, "movies") // partitioned by year/month/day
+    val tvShows = new Path(sourcesPath, "tv_shows") // partitioned by date
 
     fs.create(sourcesPath)
+//    fs.create(movies)
+//    fs.create(tvShows)
+
+//    var twelveMonthsAgo = now.minusMonths(12)
+//    while (!twelveMonthsAgo.isEqual(now)) {
+//      fs.create(new Path(movies, s"year=${twelveMonthsAgo.toString("yyyy")}/month=${twelveMonthsAgo.toString("MM")}/day=01"))
+//      fs.create(new Path(tvShows, s"partition_date=${twelveMonthsAgo.toString("yyyy-MM-dd")}"))
+//
+//      twelveMonthsAgo = twelveMonthsAgo.plusMonths(1)
+//    }
   }
+
 }
